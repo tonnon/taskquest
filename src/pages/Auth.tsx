@@ -88,7 +88,7 @@ const Auth = () => {
   return (
     <>
       <Helmet>
-        <title>{isLogin ? 'Entrar' : 'Criar Conta'} | TaskQuest</title>
+        <title>{isLogin ? 'Entrar' : 'Criar Conta'} | Taskquest</title>
       </Helmet>
 
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -114,7 +114,7 @@ const Auth = () => {
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30">
                 <Trophy className="w-6 h-6 text-primary-foreground" />
               </div>
-              <h1 className="text-3xl font-bold text-gradient">TaskQuest</h1>
+              <h1 className="text-3xl font-bold text-gradient">Taskquest</h1>
             </motion.div>
             <p className="text-muted-foreground">
               {isLogin ? 'Entre para continuar sua jornada' : 'Crie sua conta e comece a conquistar'}

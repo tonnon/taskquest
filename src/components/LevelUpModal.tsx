@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import { Trophy, Star, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import confetti from 'canvas-confetti';
+import { GameAvatarFrame } from './GameAvatarFrame';
+import { getRarity } from '@/utils/rankStyles';
+import { useTaskStore } from '@/store/taskStore';
 
 interface LevelUpModalProps {
   level: number;
@@ -10,6 +13,8 @@ interface LevelUpModalProps {
 }
 
 const LevelUpModal = ({ level, onClose }: LevelUpModalProps) => {
+  const { avatarUrl, userProgress } = useTaskStore();
+
   useEffect(() => {
     // Celebration confetti
     const duration = 3000;
@@ -71,9 +76,16 @@ const LevelUpModal = ({ level, onClose }: LevelUpModalProps) => {
             scale: [1, 1.1, 1],
           }}
           transition={{ duration: 0.5, repeat: 2 }}
-          className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-gold to-amber-400 mb-6 shadow-glow-gold"
+          className="relative flex items-center justify-center w-40 h-40 mx-auto mb-6"
         >
-          <Trophy className="w-12 h-12 text-background" />
+          <GameAvatarFrame 
+            level={level}
+            rarity={getRarity(level)}
+            avatarUrl={avatarUrl}
+            frameSrc={userProgress?.customFrameUrl}
+            className="w-32 h-32"
+            animated={true}
+          />
         </motion.div>
 
         <div className="flex items-center justify-center gap-1 mb-2">
@@ -90,9 +102,7 @@ const LevelUpModal = ({ level, onClose }: LevelUpModalProps) => {
           Parabéns! Você alcançou o
         </p>
 
-        <motion.div
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 1, repeat: Infinity }}
+        <div
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-gold/20 to-amber-500/20 border border-gold/30 mb-6"
         >
           <Sparkles className="w-5 h-5 text-gold" />
@@ -100,7 +110,7 @@ const LevelUpModal = ({ level, onClose }: LevelUpModalProps) => {
             Nível {level}
           </span>
           <Sparkles className="w-5 h-5 text-gold" />
-        </motion.div>
+        </div>
 
         <p className="text-sm text-muted-foreground mb-6">
           Continue completando tarefas para subir de nível!

@@ -1,4 +1,6 @@
+import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
@@ -17,13 +19,45 @@ import { useTaskStore } from '@/store/taskStore';
 import Column from './Column';
 import TaskCard from './TaskCard';
 import LevelUpModal from './LevelUpModal';
+import KanbanSkeleton from './KanbanSkeleton';
 
 const KanbanBoard = () => {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [showLevelUp, setShowLevelUp] = useState(false);
-  const [previousLevel, setPreviousLevel] = useState(1);
   
-  const { tasks, moveTask, userProgress } = useTaskStore();
+  const { user: authUser } = useAuth();
+  const {
+    tasks,
+    moveTask,
+    userProgress,
+    isLoading,
+    isSynced,
+    userId,
+    _hasHydrated,
+    levelUpTrigger,
+    ackLevelUp,
+  } = useTaskStore(
+    useShallow((state) => ({
+      tasks: state.tasks,
+      moveTask: state.moveTask,
+      userProgress: state.userProgress,
+      isLoading: state.isLoading,
+      isSynced: state.isSynced,
+      userId: state.userId,
+      _hasHydrated: state._hasHydrated,
+      levelUpTrigger: state.levelUpTrigger,
+      ackLevelUp: state.ackLevelUp,
+    }))
+  );
+
+  // Stricter loading check: must be hydrated, 
+  // userId must match current auth user, AND level must be > 0
+  // We don't wait for isSynced/isLoading to avoid the "Level 1 flash" on refresh
+  const isDataReady = 
+    _hasHydrated && 
+    authUser && 
+    userId === authUser.uid && 
+    userProgress.level > 0;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -36,13 +70,11 @@ const KanbanBoard = () => {
     })
   );
 
-  // Check for level up
+  // Show level up modal only when trigger changes
   useEffect(() => {
-    if (userProgress.level > previousLevel) {
-      setShowLevelUp(true);
-      setPreviousLevel(userProgress.level);
-    }
-  }, [userProgress.level, previousLevel]);
+    if (!isSynced || levelUpTrigger === 0) return;
+    setShowLevelUp(true);
+  }, [levelUpTrigger, isSynced]);
 
   const getTasksByStatus = (status: TaskStatus): Task[] => {
     return tasks.filter((task) => task.status === status);
@@ -77,6 +109,10 @@ const KanbanBoard = () => {
     }
   };
 
+  if (!isDataReady) {
+    return <KanbanSkeleton />;
+  }
+
   return (
     <>
       <DndContext
@@ -109,7 +145,10 @@ const KanbanBoard = () => {
         {showLevelUp && (
           <LevelUpModal
             level={userProgress.level}
-            onClose={() => setShowLevelUp(false)}
+            onClose={() => {
+              setShowLevelUp(false);
+              ackLevelUp();
+            }}
           />
         )}
       </AnimatePresence>

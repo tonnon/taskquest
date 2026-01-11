@@ -6,6 +6,7 @@ import { GripVertical, Trash2, ChevronDown, ChevronUp, Sparkles } from 'lucide-r
 import { Task } from '@/types/task';
 import { useTaskStore } from '@/store/taskStore';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import Checklist from './Checklist';
 import XpPopup from './XpPopup';
 
@@ -17,7 +18,7 @@ interface TaskCardProps {
 const TaskCard = ({ task, isDragging }: TaskCardProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [xpPopup, setXpPopup] = useState<{ amount: number; visible: boolean }>({ amount: 0, visible: false });
-  const deleteTask = useTaskStore((state) => state.deleteTask);
+  const { deleteTask, toggleTaskCompletion } = useTaskStore();
 
   const {
     attributes,
@@ -35,7 +36,12 @@ const TaskCard = ({ task, isDragging }: TaskCardProps) => {
   const completedCount = task.checklist.filter((item) => item.completed).length;
   const totalCount = task.checklist.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-  const isComplete = totalCount > 0 && completedCount === totalCount;
+  const isComplete = task.status === 'done';
+
+  const handleToggleComplete = () => {
+    const xp = toggleTaskCompletion(task.id);
+    if (xp > 0) handleXpGain(xp);
+  };
 
   const handleXpGain = (amount: number) => {
     setXpPopup({ amount, visible: true });
@@ -52,17 +58,16 @@ const TaskCard = ({ task, isDragging }: TaskCardProps) => {
       style={style}
       layout
       initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ 
-        opacity: isDragging ? 0.8 : 1, 
+      animate={{
+        opacity: isDragging ? 0.8 : 1,
         scale: isDragging ? 1.02 : 1,
-        boxShadow: isDragging 
-          ? '0 20px 40px rgba(139, 92, 246, 0.3)' 
+        boxShadow: isDragging
+          ? '0 20px 40px rgba(139, 92, 246, 0.3)'
           : '0 4px 20px rgba(0, 0, 0, 0.2)'
       }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className={`relative glass-card rounded-xl overflow-hidden card-hover ${
-        isComplete ? 'border-success/30' : 'border-border/50'
-      }`}
+      className={`relative glass-card rounded-xl overflow-hidden card-hover ${isComplete ? 'border-success/30' : 'border-border/50'
+        }`}
     >
       {/* Progress indicator at top */}
       {totalCount > 0 && (
@@ -85,31 +90,35 @@ const TaskCard = ({ task, isDragging }: TaskCardProps) => {
 
       <div className="p-4 pt-5">
         {/* Header */}
-        <div className="flex items-start gap-2">
+        <div className="flex items-center gap-2">
           <button
             {...attributes}
             {...listeners}
-            className="mt-1 p-1 rounded hover:bg-muted/50 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            className="p-1 rounded hover:bg-muted/50 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-muted-foreground transition-colors self-stretch flex items-center"
           >
             <GripVertical className="w-4 h-4" />
           </button>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <h3 className={`font-semibold text-base leading-tight ${
-                isComplete ? 'text-success' : 'text-foreground'
-              }`}>
-                {isComplete && <Sparkles className="inline w-4 h-4 mr-1" />}
-                {task.title}
-              </h3>
-              
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Checkbox
+                  checked={isComplete}
+                  onCheckedChange={handleToggleComplete}
+                  className="shrink-0"
+                />
+                <h3 className={`font-semibold text-base leading-tight ${isComplete ? 'text-success line-through opacity-70' : 'text-foreground'
+                  }`}>
+                  {task.title}
+                </h3>
+              </div>
+
               <div className="flex items-center gap-1 flex-shrink-0">
                 {totalCount > 0 && (
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    isComplete 
-                      ? 'bg-success/20 text-success' 
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isComplete
+                      ? 'bg-success/20 text-success'
                       : 'bg-primary/20 text-primary'
-                  }`}>
+                    }`}>
                     {completedCount}/{totalCount}
                   </span>
                 )}

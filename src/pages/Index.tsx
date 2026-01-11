@@ -1,14 +1,36 @@
 import { Helmet } from 'react-helmet-async';
-import { Sparkles } from 'lucide-react';
+import { LogOut, UserRound, Camera } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import KanbanBoard from '@/components/KanbanBoard';
-import XpBar from '@/components/XpBar';
+import UserAvatar from '@/components/UserAvatar';
+import HabitSection from '@/components/HabitSection';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTaskStore } from '@/store/taskStore';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  const handleOpenAvatarUpload = () => {
+    window.dispatchEvent(new CustomEvent('taskquest:open-avatar-upload'));
+  };
+
   return (
     <>
       <Helmet>
-        <title>TaskQuest - Gerenciador de Tarefas Gamificado</title>
-        <meta name="description" content="Gerencie suas tarefas de forma divertida e produtiva com TaskQuest. Sistema Kanban com gamificação, XP e níveis para motivar sua produtividade." />
+        <title>Taskquest</title>
+        <meta name="description" content="Gerencie suas tarefas de forma divertida e produtiva com Taskquest. Sistema Kanban com gamificação, XP e níveis para motivar sua produtividade." />
         <meta name="keywords" content="tarefas, produtividade, kanban, gamificação, todo list, gestão de tarefas" />
       </Helmet>
 
@@ -22,34 +44,68 @@ const Index = () => {
 
         <div className="relative z-10 container mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8">
           {/* Header */}
-          <header className="text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow-md">
-                <Sparkles className="w-5 h-5 text-white" />
+          <header className="grid gap-6 md:grid-cols-[1fr_auto_1fr] items-center">
+            <div className="flex items-center justify-center md:justify-start gap-3">
+              <img
+                src="/logo.png"
+                alt="Taskquest"
+                className="w-12 h-12 rounded-xl object-contain"
+              />
+              <div className="text-center md:text-left">
+                <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+                  <span className="text-gradient">Taskquest</span>
+                </h1>
+                <p className="text-sm text-muted-foreground hidden md:block">Domine seus desafios diários</p>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold">
-                <span className="text-gradient">TaskQuest</span>
-              </h1>
             </div>
-            <p className="text-muted-foreground text-sm md:text-base">
-              Complete tarefas, ganhe XP e suba de nível! 🚀
-            </p>
+
+            <div className="flex flex-col items-center gap-3">
+              <UserAvatar />
+            </div>
+
+            <div className="flex justify-center md:justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 p-3 text-foreground shadow hover:bg-white/10 focus-visible:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <UserRound className="h-5 w-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      handleOpenAvatarUpload();
+                    }}
+                  >
+                    <Camera className="mr-2 h-4 w-4" />
+                    Trocar imagem
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      handleSignOut();
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </header>
 
-          {/* XP Bar */}
-          <XpBar />
+
 
           {/* Kanban Board */}
-          <main>
+          <main className="space-y-6">
             <KanbanBoard />
+            <HabitSection />
           </main>
 
-          {/* Footer */}
-          <footer className="text-center py-4">
-            <p className="text-xs text-muted-foreground">
-              Arraste as tarefas entre colunas para organizar seu trabalho
-            </p>
-          </footer>
         </div>
       </div>
     </>

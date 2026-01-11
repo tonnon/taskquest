@@ -10,29 +10,44 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const { setUserId, loadUserData, userId } = useTaskStore();
+  const {
+    setUserId,
+    loadUserData,
+    userId,
+    syncAvatarFromAuth,
+    isSynced,
+    _hasHydrated,
+  } = useTaskStore();
 
   useEffect(() => {
-    if (user && user.uid !== userId) {
-      setUserId(user.uid);
-      loadUserData(user.uid);
-    } else if (!user && userId) {
-      setUserId(null);
+    if (!_hasHydrated || loading) return;
+
+    const syncUserState = async () => {
+      if (user) {
+        if (user.uid !== userId) {
+          setUserId(user.uid);
+        }
+        await syncAvatarFromAuth(user);
+      } else if (!user && userId) {
+        setUserId(null);
+      }
+    };
+
+    syncUserState();
+  }, [user, userId, _hasHydrated, loading, setUserId, syncAvatarFromAuth]);
+
+  useEffect(() => {
+    if (!_hasHydrated || loading) return;
+
+    if (user && userId && !isSynced) {
+      loadUserData(userId);
     }
-  }, [user, userId, setUserId, loadUserData]);
+  }, [user, userId, isSynced, _hasHydrated, loading, loadUserData]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
+  // If loading or hydrating, we still render children (which should handle their own skeleton states)
+  // instead of a full screen loader.
+  // We only redirect if we are sure there is no user (loading is false).
+  if (!loading && _hasHydrated && !user) {
     return <Navigate to="/auth" replace />;
   }
 
