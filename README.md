@@ -86,26 +86,3 @@ src/
 ├─ data/            # dados estáticos (ex.: artifacts)
 └─ pages/           # rotas principais (Index, auth)
 ```
-
-## 🧪 Roadmap / Ideias
-
-- [x] Sub-checklists com CR*UD completo
-- [x] UI minimalista para adicionar sub-itens via ícone
-- [x] Toggle para ocultar/exibir sub-itens com animação
-- [ ] Sistema de coleção de artefatos com efeitos em avatar/board
-- [ ] Notificações ou lembretes inteligentes
-
-## 🤝 Contribuindo
-
-1. Faça um fork do projeto.
-2. Crie uma branch feature: `git checkout -b feature/minha-feature`.
-3. Commits semânticos e focados.
-4. Abra um PR descrevendo claramente a motivação e a solução.
-
-## 📜 Licença
-
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
-
----
-
-Made with 💜 by TaskQuest contributors. Sinta-se livre para adaptar o projeto ao seu fluxo e compartilhar melhorias!
